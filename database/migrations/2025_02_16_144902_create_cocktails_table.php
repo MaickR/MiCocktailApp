@@ -13,6 +13,7 @@ class CreateCocktailsTable extends Migration
             $table->string('cocktail_id_api')->nullable()->comment('ID del cóctel según la API');  
             $table->string('name');        
             $table->string('category')->nullable();  
+            $table->string('alcoholic')->nullable();
             $table->text('instructions')->nullable(); 
             $table->string('thumbnail')->nullable(); 
             $table->unsignedBigInteger('user_id')->nullable()->comment('ID del usuario que agregó el cóctel');

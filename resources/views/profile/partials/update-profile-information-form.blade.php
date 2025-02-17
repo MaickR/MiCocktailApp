@@ -1,64 +1,94 @@
-<section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Profile Information') }}
-        </h2>
+<!-- resources/views/profile/partials/update-profile-information-form.blade.php -->
+<form id="profile-info-form" method="POST" action="{{ route('profile.update') }}">
+    @csrf
+    @method('patch')
 
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __("Update your account's profile information and email address.") }}
-        </p>
-    </header>
+    <div class="mb-4">
+        <label for="name" class="form-label">Nombre</label>
+        <input type="text" class="form-control" id="name" name="name"
+               value="{{ old('name', $user->name) }}"
+               required
+               minlength="4"
+               maxlength="10">
+        @error('name')
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+        @enderror
+    </div>
 
-    <form id="send-verification" method="post" action="{{ route('verification.send') }}">
-        @csrf
-    </form>
+    <div class="mb-4">
+        <label for="email" class="form-label">Correo Electrónico</label>
+        <input type="email" class="form-control" id="email" name="email"
+               value="{{ old('email', $user->email) }}"
+               required>
+        @error('email')
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+        @enderror
+    </div>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
-        @csrf
-        @method('patch')
+    <div class="d-flex justify-content-start">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save me-2"></i>Guardar Cambios
+        </button>
+    </div>
+</form>
 
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
-        </div>
+@push('scripts')
+<script>
+$(document).ready(function() {
+    const $form = $('#profile-info-form');
 
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
+    // Al enviar, validación extra en JS (opcional)
+    $form.on('submit', function(e){
+        e.preventDefault();
+        const $name  = $('#name');
+        const $email = $('#email');
+        let errors = [];
 
-            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-gray-800">
-                        {{ __('Your email address is unverified.') }}
+        if ($name.val().trim().length < 4 || $name.val().trim().length > 10) {
+            errors.push('El nombre debe tener entre 4 y 10 caracteres');
+        }
 
-                        <button form="send-verification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
-                    </p>
+        // Validación simple de email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test($email.val())) {
+            errors.push('Ingresa un correo electrónico válido');
+        }
 
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600">
-                            {{ __('A new verification link has been sent to your email address.') }}
-                        </p>
-                    @endif
-                </div>
-            @endif
-        </div>
+        if (errors.length > 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de Validación',
+                html: errors.join('<br>'),
+                confirmButtonColor: '#2563eb'
+            });
+            return;
+        }
 
-        <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
+        // Enviar el form
+        $form.off('submit').submit();
+    });
 
-            @if (session('status') === 'profile-updated')
-                <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-gray-600"
-                >{{ __('Saved.') }}</p>
-            @endif
-        </div>
-    </form>
-</section>
+    // Si hay errores del servidor (por duplicados), los mostramos con SweetAlert
+    var errors = <?php echo json_encode($errors->all()); ?>;
+    if (errors.length > 0) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error del Servidor',
+            html: errors.join('<br>')
+        });
+    }
+
+    // Mensaje de éxito si se actualizó
+    var status = "{{ session('status') }}";
+    if (status === 'perfil-actualizado') {
+        Swal.fire({
+            icon: 'success',
+            title: '¡Cambios guardados!',
+            text: 'Tu perfil se ha actualizado correctamente',
+            confirmButtonColor: '#2563eb',
+            timer: 3000
+        });
+    }
+});
+</script>
+@endpush

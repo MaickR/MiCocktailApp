@@ -14,10 +14,12 @@ class Cocktail extends Model
         'cocktail_id_api',
         'name',
         'category',
+        'alcoholic',
         'instructions',
         'thumbnail',
         'user_id'
     ];
+    
     
     //! Relación con el usuario
     public function user()

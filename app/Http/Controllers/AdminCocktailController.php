@@ -59,21 +59,23 @@ class AdminCocktailController extends Controller
     //* Actualiza la información del cóctel.
     public function update(Request $request, $id)
     {
-        $data = $request->validate([
-            'name'         => 'required|string',
-            'category'     => 'nullable|string',
-            'instructions' => 'nullable|string',
-            'thumbnail'    => 'nullable|url'
-        ]);
+    $data = $request->validate([
+        'name'         => 'required|string',
+        'category'     => 'nullable|string',
+        'alcoholic'    => 'nullable|string',
+        'instructions' => 'nullable|string',
+        'thumbnail'    => 'nullable|url'
+    ]);
 
-        try {
-            $cocktail = Cocktail::findOrFail($id);
-            $cocktail->update($data);
-            return redirect()->route('cocktails.index')->with('success', 'Cóctel actualizado correctamente');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al actualizar: ' . $e->getMessage());
-        }
+    try {
+        $cocktail = Cocktail::findOrFail($id);
+        $cocktail->update($data);
+        return redirect()->route('cocktails.index')->with('success', 'Cóctel actualizado correctamente');
+    } catch (\Exception $e) {
+        return back()->with('error', 'Error al actualizar: ' . $e->getMessage());
     }
+    }
+
 
    //* Elimina un cóctel de la base de datos.
     public function destroy($id)

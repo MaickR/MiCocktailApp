@@ -1,55 +1,93 @@
-<section class="space-y-6">
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Delete Account') }}
-        </h2>
+<!-- resources/views/profile/partials/delete-user-form.blade.php -->
+<form id="delete-account-form" method="post" action="{{ route('profile.destroy') }}">
+    @csrf
+    @method('delete')
 
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.') }}
-        </p>
-    </header>
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        Una vez eliminada tu cuenta, todos sus datos serán borrados permanentemente.
+    </div>
 
-    <x-danger-button
-        x-data=""
-        x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
-    >{{ __('Delete Account') }}</x-danger-button>
+    <div class="mb-3">
+        <label for="delete_password" class="form-label">Contraseña Actual</label>
+        <input type="password" class="form-control"
+               id="delete_password"
+               name="password"
+               required>
+        @error('password')
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+        @enderror
+    </div>
 
-    <x-modal name="confirm-user-deletion" :show="$errors->userDeletion->isNotEmpty()" focusable>
-        <form method="post" action="{{ route('profile.destroy') }}" class="p-6">
-            @csrf
-            @method('delete')
+    <div class="d-flex justify-content-start">
+        <button type="button" id="btn-delete-account"
+                class="btn btn-danger cocktail-btn">
+            <i class="bi bi-trash3 me-2"></i>Eliminar Cuenta
+        </button>
+    </div>
+</form>
 
-            <h2 class="text-lg font-medium text-gray-900">
-                {{ __('Are you sure you want to delete your account?') }}
-            </h2>
+@push('scripts')
+<script>
+$(document).ready(function(){
+    const $deleteForm = $('#delete-account-form');
 
-            <p class="mt-1 text-sm text-gray-600">
-                {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.') }}
-            </p>
+    $('#btn-delete-account').click(function(e){
+        e.preventDefault();
 
-            <div class="mt-6">
-                <x-input-label for="password" value="{{ __('Password') }}" class="sr-only" />
+        Swal.fire({
+            icon: 'warning',
+            title: '¿Estás seguro?',
+            html: `<div class="text-danger">Esta acción no se puede deshacer</div>
+                   <small class="text-muted">Para confirmar, escribe "ELIMINAR" en el siguiente campo</small>`,
+            input: 'text',
+            inputAttributes: {
+                autocapitalize: 'off'
+            },
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Confirmar Eliminación',
+            cancelButtonText: 'Cancelar',
+            inputValidator: (value) => {
+                if(value !== 'ELIMINAR') {
+                    return 'Debes escribir "ELIMINAR" para confirmar';
+                }
+            }
+        }).then((result) => {
+            if(result.isConfirmed){
+                Swal.fire({
+                    title: 'Eliminando...',
+                    html: 'Estamos procesando tu solicitud',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                        $deleteForm.submit();
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Acción revertida',
+                    text: 'No se ha eliminado la cuenta.'
+                });
+            }
+        });
+    });
 
-                <x-text-input
-                    id="password"
-                    name="password"
-                    type="password"
-                    class="mt-1 block w-3/4"
-                    placeholder="{{ __('Password') }}"
-                />
+    // Si el servidor devolvió un error (contraseña incorrecta)
+    @if($errors->has('password'))
+        let errorMessages = '';
+        @foreach($errors->all() as $error)
+            errorMessages += '{{ $error }}<br>';
+        @endforeach
 
-                <x-input-error :messages="$errors->userDeletion->get('password')" class="mt-2" />
-            </div>
-
-            <div class="mt-6 flex justify-end">
-                <x-secondary-button x-on:click="$dispatch('close')">
-                    {{ __('Cancel') }}
-                </x-secondary-button>
-
-                <x-danger-button class="ms-3">
-                    {{ __('Delete Account') }}
-                </x-danger-button>
-            </div>
-        </form>
-    </x-modal>
-</section>
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de Validación',
+            html: errorMessages
+        });
+    @endif
+});
+</script>
+@endpush

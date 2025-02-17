@@ -8,6 +8,8 @@
             <th>ID</th>
             <th>Nombre</th>
             <th>Categoría</th>
+            <th>Tipo</th>
+            <th>Instrucciones</th>
             <th>Acciones</th>
         </tr>
     </thead>
@@ -17,6 +19,8 @@
             <td>{{ $cocktail->id }}</td>
             <td>{{ $cocktail->name }}</td>
             <td>{{ $cocktail->category }}</td>
+            <td>{{ $cocktail->alcoholic }}</td>
+            <td>{{ $cocktail->instructions }}</td>
             <td>
                 <a href="{{ route('cocktails.edit', $cocktail->id) }}" class="btn btn-primary btn-sm">
                     <i class="bi bi-pencil"></i>
@@ -34,10 +38,8 @@
 @section('scripts')
 <script>
 $(document).ready(function(){
-    //! Inicialización de DataTables
     $('#cocktailsTable').DataTable();
 
-    //! Manejo de eliminación con SweetAlert
     $('.btn-delete').click(function(){
         let cocktailId = $(this).data('id');
         Swal.fire({
@@ -60,7 +62,6 @@ $(document).ready(function(){
                             timer: 1500,
                             showConfirmButton: false
                         });
-                        // Recargar la página para actualizar la tabla
                         setTimeout(function(){ location.reload(); }, 1500);
                     },
                     error: function(xhr){
